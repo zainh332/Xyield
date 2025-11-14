@@ -393,8 +393,8 @@
             ui.estYear.value = fmt(amt * RATES.yearly, 6);
         }
 
-        const XAMAN_API_KEY = '86ca040a-6484-4825-a8cb-86106ab477f1';
-        const XAMAN_REDIRECT = 'http://XYield.test';
+        const XAMAN_API_KEY = '8e39c96e-8a2b-4a99-a3f3-383f14480d66';
+        const XAMAN_REDIRECT = 'https://xyield.vip/';
 
         let xumm = null;
 
