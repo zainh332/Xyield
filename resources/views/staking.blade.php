@@ -394,7 +394,7 @@
         }
 
         const XAMAN_API_KEY = '8e39c96e-8a2b-4a99-a3f3-383f14480d66';
-        const XAMAN_REDIRECT = 'https://xyield.vip/';
+        const XAMAN_REDIRECT = 'http://xyield.test/';
 
         let xumm = null;
 
