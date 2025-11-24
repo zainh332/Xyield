@@ -290,7 +290,7 @@
             connected: false,
             address: null,
             balance: 0,
-            totalSupply: 50000000,
+            totalSupply: 10000000,
             stakers: 0,
             rewards: 0
         };
