@@ -315,8 +315,6 @@
             estYear: $('#est-year')
         };
 
-        const publicKey = state.address || localStorage.getItem('xrpl_account');
-
         function renderStats() {
             if (ui.totalSupply) ui.totalSupply.textContent = fmt(state.totalSupply, 0);
             if (ui.stakers) ui.stakers.textContent = fmt(state.stakers, 0);
@@ -344,8 +342,15 @@
             }
         }
 
+        function getCurrentAccount() {
+            return state.address || localStorage.getItem('xrpl_account');
+        }
+
         async function loadBalance() {
             try {
+                const from = getCurrentAccount();
+                if (!from) return; // no wallet connected, skip
+
                 const res = await fetch('/fetch_balance', {
                     method: 'POST',
                     headers: {
@@ -353,7 +358,7 @@
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     body: JSON.stringify({
-                        from: publicKey,
+                        from
                     })
                 });
                 const data = await res.json();
@@ -363,7 +368,7 @@
                 // re-render the stat cards AFTER state is updated
                 renderStats();
             } catch (e) {
-                console.error('Error loading dashboard data:', e);
+                console.error('Error loading balance:', e);
             }
         }
 
@@ -510,7 +515,9 @@
         }
 
         async function disconnectWallet() {
-            if (publicKey) {
+            const current = getCurrentAccount();
+
+            if (current) {
                 try {
                     await fetch('/wallet/disconnect', {
                         method: 'POST',
@@ -521,7 +528,7 @@
                                 ?.getAttribute('content') || ''
                         },
                         body: JSON.stringify({
-                            public_key: publicKey
+                            public_key: current
                         }),
                         credentials: 'include'
                     });
@@ -599,7 +606,10 @@
                     })
                 });
                 if (!startRes.ok) throw new Error('start failed');
-                const { txjson, staking_id } = await startRes.json();
+                const {
+                    txjson,
+                    staking_id
+                } = await startRes.json();
                 if (!staking_id) throw new Error('Missing staking_id from start response');
 
                 // 2) Create Xaman payload on backend
@@ -719,7 +729,8 @@
         });
 
         async function handleUnstake(stakeId) {
-            if (!publicKey) {
+            const current = getCurrentAccount();
+            if (!current) {
                 Swal.fire({
                     title: 'Error',
                     text: 'Wallet address not found.',
@@ -746,7 +757,7 @@
                     },
                     credentials: 'include',
                     body: JSON.stringify({
-                        public_key: publicKey,
+                        public_key: current,
                         stake_id: stakeId
                     })
                 });
@@ -761,7 +772,7 @@
                         confirmButtonText: 'Done'
                     });
                     // Refresh the transactions list so the table updates (button removed, etc.)
-                    await loadUserTransactions(publicKey);
+                    await loadUserTransactions(current);
                 } else {
                     Swal.fire({
                         title: 'Error',
