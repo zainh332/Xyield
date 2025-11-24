@@ -492,7 +492,6 @@
                     localStorage.setItem('accessToken', data.token);
                     // window.location.reload();
                     loadBalance();
-                    loadUserTransactions(publicKey);
                 } else {
                     console.warn('wallet not saved', data);
                 }
