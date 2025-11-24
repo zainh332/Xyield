@@ -731,10 +731,8 @@
                 const submitData = await submitRes.json();
 
                 if (submitData.status === 'tesSUCCESS') {
-                    const explorerUrl = `https://livenet.xrpl.org/transactions/${txId}`;
                     Swal.fire({
                         title: 'Success!',
-                        html: `Stake submitted. <a href="${explorerUrl}" target="_blank" rel="noopener">View transaction</a>`,
                         icon: 'success',
                         confirmButtonText: 'Done'
                     });
