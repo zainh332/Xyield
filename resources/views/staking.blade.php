@@ -890,7 +890,10 @@
         loadDashboardData();
         updateEstimate();
         loadBalance();
-        loadUserTransactions(publicKey);
+        const initialAccount = getCurrentAccount();
+        if (initialAccount) {
+            loadUserTransactions(initialAccount);
+        }
     </script>
 </body>
 
