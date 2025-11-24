@@ -736,6 +736,18 @@
                         icon: 'success',
                         confirmButtonText: 'Done'
                     });
+
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Staking Started Successfully.',
+                        icon: 'success',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
                 } else {
                     Swal.fire({
                         title: 'Broadcast result',
