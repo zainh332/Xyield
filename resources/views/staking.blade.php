@@ -188,11 +188,13 @@
         </div>
 
 
-        <section class="pb-16">
+        <section id="user-positions-section" class="pb-16 hidden">
             <div class="rounded-2xl card p-6">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold">Your Position</h3>
-                    <div class="text-sm text-white/60">Showing last 10</div>
+                    <div class="text-sm text-white/60">
+                        Showing last <span id="tx-count">0</span>
+                    </div>
                 </div>
                 <div class="mt-4 overflow-x-auto">
                     <table class="min-w-[720px] w-full text-left">
@@ -452,6 +454,7 @@
         });
 
         async function connectWallet() {
+            btnConnect.textContent = 'Connecting';
             try {
                 const client = ensureXumm();
                 await client.authorize();
@@ -779,6 +782,10 @@
         }
 
         async function loadUserTransactions(publicKey) {
+            const section = document.getElementById('user-positions-section');
+            const countEl = document.getElementById('tx-count');
+            const tbody = document.getElementById('user-transactions');
+
             try {
                 const res = await fetch(`/transactions?public_key=${encodeURIComponent(publicKey)}`, {
                     method: 'GET',
@@ -788,14 +795,36 @@
                     credentials: 'include'
                 });
                 const data = await res.json();
-                if (data.status !== 'success') {
+                if (!data || data.status !== 'success' || !Array.isArray(data.transactions)) {
                     console.error('Failed to fetch transactions', data);
+                    if (tbody) tbody.innerHTML = '';
+                    if (section) section.classList.add('hidden');
+                    if (countEl) countEl.textContent = '0';
                     return;
                 }
 
-                renderTransactionRows(data.transactions);
+                const list = data.transactions || [];
+
+                if (list.length > 0) {
+                    if (countEl) countEl.textContent = String(Math.min(list.length,
+                    10));
+                    if (section) section.classList.remove('hidden');
+                    renderTransactionRows(list);
+                } else {
+                    if (tbody) tbody.innerHTML = '';
+                    if (countEl) countEl.textContent = '0';
+                    if (section) section.classList.add('hidden');
+                }
+
             } catch (err) {
                 console.error('Error loading transactions', err);
+                const section = document.getElementById('user-positions-section');
+                const tbody = document.getElementById('user-transactions');
+                const countEl = document.getElementById('tx-count');
+
+                if (tbody) tbody.innerHTML = '';
+                if (countEl) countEl.textContent = '0';
+                if (section) section.classList.add('hidden');
             }
         }
 
@@ -804,17 +833,21 @@
             if (!tbody) return;
 
             const rows = list.map(item => {
-                const date = new Date(item.created_at).toLocaleString();
+                const date = item.created_at ? new Date(item.created_at).toLocaleString() : '-';
                 const txId = item.transaction_id || '';
                 const explorerUrl = txId ? `https://livenet.xrpl.org/transactions/${txId}` : '';
                 const hashDisplay = txId ?
-                    `<a href="${explorerUrl}" target="_blank" rel="noopener noreferrer">View Transaction</a>` : '';
-                const amount = item.amount;
-                const isActive = (item.staking_status_id === 1 && item.is_withdrawn === 0);
+                    `<a href="${explorerUrl}" target="_blank" rel="noopener noreferrer">View Transaction</a>` :
+                    '-';
+
+                const amount = (item.amount ?? '-') + '';
+                const statusId = Number(item.staking_status_id);
+                const withdrawn = Number(item.is_withdrawn);
+                const isActive = (statusId === 1 && withdrawn === 0);
                 const statusText = isActive ? 'Active' : 'Inactive';
 
                 const actionHtml = isActive ?
-                    `<button class="unstake-btn" data-stake-id="${item.stake_id}">Unstake</button>` :
+                    `<button class="unstake-btn px-5 py-2.5 rounded-xl btn-primary" data-stake-id="${item.stake_id}">Unstake</button>` :
                     '';
 
                 return `
