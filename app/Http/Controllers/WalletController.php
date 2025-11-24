@@ -36,17 +36,13 @@ class WalletController extends Controller
             ]
         );
 
-        $token = $wallet->createToken('tokenglade')->plainTextToken;
-
         setcookie('public_key', $request->public_key, time() + (86400 * 30), "/");
         setcookie('wallet_type_id', $request->wallet_type_id, time() + (86400 * 30), "/");
         setcookie('blockchain_id', $request->blockchain_id, time() + (86400 * 30), "/");
-        setcookie('accessToken', $token, time() + (86400 * 30), "/");
 
         return response()->json([
             'status' => 'success',
             'public' => $request->public_key,
-            'token' => $token
         ]);
     }
 

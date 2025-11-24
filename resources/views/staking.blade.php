@@ -480,37 +480,67 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute('content') || ''
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                            'content') || ''
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         public_key: publicKey,
                         wallet_type_id: 1,
                         blockchain_id: 1
-                    }),
-                    credentials: 'include'
+                    })
                 });
+
+                // If HTTP error (422, 500, etc.)
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error('[/wallet/connect] HTTP error', res.status, text);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Wallet connect failed (HTTP ' + res.status + ').',
+                        icon: 'error'
+                    });
+                    btnConnect.textContent = 'Connect Wallet';
+                    state.connected = false;
+                    state.address = null;
+                    return;
+                }
 
                 const data = await res.json();
                 if (data.status === 'success') {
-                    localStorage.setItem('accessToken', data.token);
-                    // window.location.reload();
-                    loadBalance();
+                    Swal.fire({
+                        title: 'Wallet Connected!',
+                        text: 'Your XRPL wallet has been connected successfully.',
+                        icon: 'success',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
                 } else {
                     console.warn('wallet not saved', data);
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message || 'Wallet connection failed on server.',
+                        icon: 'error'
+                    });
                 }
 
                 dropdown?.classList.add('hidden');
                 renderStats();
             } catch (e) {
                 console.error('[xumm] connect error', e);
-                // Swal.fire({
-                //     title: 'Error',
-                //     text: 'Wallet connection failed.',
-                //     icon: 'error',
-                //     confirmButtonText: 'OK'
-                // });
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Wallet connection failed.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                btnConnect.textContent = 'Connect Wallet';
+                state.connected = false;
+                state.address = null;
             }
         }
 
@@ -819,7 +849,7 @@
 
                 if (list.length > 0) {
                     if (countEl) countEl.textContent = String(Math.min(list.length,
-                    10));
+                        10));
                     if (section) section.classList.remove('hidden');
                     renderTransactionRows(list);
                 } else {
