@@ -490,7 +490,9 @@
                 const data = await res.json();
                 if (data.status === 'success') {
                     localStorage.setItem('accessToken', data.token);
-                    window.location.reload();
+                    // window.location.reload();
+                    loadBalance();
+                    loadUserTransactions(publicKey);
                 } else {
                     console.warn('wallet not saved', data);
                 }
