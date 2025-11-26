@@ -895,7 +895,7 @@
                 const amount = (item.amount ?? '-') + '';
                 const statusId = Number(item.staking_status_id);
                 const withdrawn = Number(item.is_withdrawn);
-                const isActive = (statusId === 1 && withdrawn === 0);
+                const isActive = (statusId != 4 && withdrawn === 0);
                 const statusText = isActive ? 'Active' : 'Inactive';
 
                 const actionHtml = isActive ?
