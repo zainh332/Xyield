@@ -431,7 +431,6 @@
         }
 
         const btnConnect = document.getElementById('btn-connect');
-        // const walletShort = document.getElementById('wallet-short');
         const dropdown = document.getElementById('wallet-dropdown');
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -440,7 +439,6 @@
                 state.address = saved;
                 state.connected = true;
                 btnConnect.textContent = 'Disconnect';
-                // if (walletShort) walletShort.textContent = shortAddr(saved);
                 ui.walletInfo?.classList.remove('hidden');
                 if (ui.walletAddr) ui.walletAddr.textContent = saved;
             }
@@ -471,9 +469,6 @@
 
                 ui.walletInfo?.classList.remove('hidden');
                 if (ui.walletAddr) ui.walletAddr.textContent = publicKey;
-
-                // btnConnect.textContent = 'Disconnect';
-                // if (walletShort) walletShort.textContent = shortAddr(publicKey);
 
                 localStorage.setItem('xrpl_account', publicKey);
 
@@ -572,18 +567,20 @@
                 xumm.logout?.();
             }
 
+            localStorage.removeItem('xrpl_account');
+            localStorage.removeItem('accessToken');
+
             state.connected = false;
             state.address = null;
             ui.walletInfo?.classList.add('hidden');
             ui.walletAddr && (ui.walletAddr.textContent = '...');
             btnConnect.textContent = 'Connect Wallet';
             dropdown?.classList.add('hidden');
-            localStorage.removeItem('xrpl_account');
-            localStorage.removeItem('accessToken');
 
             renderStats();
 
             updateWalletUI();
+            window.location.reload();
         }
 
         $('#btn-copy')?.addEventListener('click', () => {
@@ -947,12 +944,10 @@
                 btnConnect.textContent = shortAddr(state.address);
                 btnConnect.classList.remove('btn-primary');
                 btnConnect.classList.add('btn-outline');
-                // walletShort.textContent = state.address;
             } else {
                 btnConnect.textContent = 'Connect Wallet';
                 btnConnect.classList.add('btn-primary');
                 btnConnect.classList.remove('btn-outline');
-                // walletShort.textContent = '';
             }
         }
 
