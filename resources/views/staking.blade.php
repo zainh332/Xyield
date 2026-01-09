@@ -455,25 +455,34 @@
         });
 
         async function connectWallet() {
-            // start loading
             btnConnect.textContent = 'Connecting...';
             btnConnect.disabled = true;
 
             try {
-                const client = ensureXumm();
-                if (!client) throw new Error('Xumm SDK not loaded');
+                const xumm = ensureXumm();
+                if (!xumm) throw new Error('Xumm SDK not loaded');
 
-                // ✅ FORCE new session so Xaman opens
-                try {
-                    await client.logout();
-                } catch (_) {}
+                // Create a SignIn payload (forces Xaman)
+                const payload = await xumm.payload.create({
+                    txjson: {
+                        TransactionType: "SignIn"
+                    }
+                });
 
-                await client.authorize();
+                // Open the payload (Xaman deep link / QR depending on device)
+                xumm.payload.open(payload);
 
-                // ✅ your SDK: account is a Promise
-                const publicKey = String(await client.user.account || '').trim();
-                if (!publicKey) throw new Error('Xumm did not return an account');
+                // Wait for user to sign
+                const resolved = await xumm.payload.subscribe(payload.uuid, (event) => {
+                    if (event.data.signed === true || event.data.signed === false) return event;
+                });
 
+                if (!resolved?.data?.signed) throw new Error('User rejected the request');
+
+                const publicKey = resolved.data?.response?.account;
+                if (!publicKey) throw new Error('No account returned from signed payload');
+
+                // backend connect
                 const res = await fetch('/wallet/connect', {
                     method: 'POST',
                     headers: {
@@ -526,6 +535,7 @@
                 if (!state.connected) btnConnect.textContent = 'Connect Wallet';
             }
         }
+
 
         async function disconnectWallet() {
             const current = getCurrentAccount();
