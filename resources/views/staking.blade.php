@@ -467,6 +467,9 @@
                 await client.authorize();
 
                 const publicKey = client.user?.account;
+
+                console.log('[xumm] user object:', client.user);
+                console.log('[xumm] account:', publicKey);
                 if (!publicKey) throw new Error('No XRPL account returned from Xumm');
 
                 //Save to backend
