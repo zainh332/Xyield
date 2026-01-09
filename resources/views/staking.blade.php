@@ -455,34 +455,22 @@
         });
 
         async function connectWallet() {
-            btnConnect.textContent = 'Connecting...';
-            btnConnect.disabled = true;
-
+            btnConnect.textContent = 'Connecting';
             try {
-                const xumm = ensureXumm();
-                if (!xumm) throw new Error('Xumm SDK not loaded');
+                const client = ensureXumm();
+                await client.authorize();
+                const publicKey = await client.user.account;
 
-                // Create a SignIn payload (forces Xaman)
-                const payload = await xumm.payload.create({
-                    txjson: {
-                        TransactionType: "SignIn"
-                    }
-                });
+                state.address = publicKey;
+                state.connected = true;
 
-                // Open the payload (Xaman deep link / QR depending on device)
-                xumm.payload.open(payload);
+                updateWalletUI();
 
-                // Wait for user to sign
-                const resolved = await xumm.payload.subscribe(payload.uuid, (event) => {
-                    if (event.data.signed === true || event.data.signed === false) return event;
-                });
+                ui.walletInfo?.classList.remove('hidden');
+                if (ui.walletAddr) ui.walletAddr.textContent = publicKey;
 
-                if (!resolved?.data?.signed) throw new Error('User rejected the request');
+                localStorage.setItem('xrpl_account', publicKey);
 
-                const publicKey = resolved.data?.response?.account;
-                if (!publicKey) throw new Error('No account returned from signed payload');
-
-                // backend connect
                 const res = await fetch('/wallet/connect', {
                     method: 'POST',
                     headers: {
@@ -498,44 +486,58 @@
                     })
                 });
 
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok || data.status !== 'success') {
-                    throw new Error(data?.message || 'Server refused wallet connect');
+                // If HTTP error (422, 500, etc.)
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error('[/wallet/connect] HTTP error', res.status, text);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Wallet connect failed (HTTP ' + res.status + ').',
+                        icon: 'error'
+                    });
+                    btnConnect.textContent = 'Connect Wallet';
+                    state.connected = false;
+                    state.address = null;
+                    return;
                 }
 
-                state.address = publicKey;
-                state.connected = true;
-                localStorage.setItem('xrpl_account', publicKey);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    Swal.fire({
+                        title: 'Wallet Connected!',
+                        text: 'Your XRPL wallet has been connected successfully.',
+                        icon: 'success',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
 
-                updateWalletUI();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    console.warn('wallet not saved', data);
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message || 'Wallet connection failed on server.',
+                        icon: 'error'
+                    });
+                }
+
                 dropdown?.classList.add('hidden');
-
-                Swal.fire({
-                    title: 'Wallet Connected!',
-                    icon: 'success',
-                    timer: 1200,
-                    showConfirmButton: false
-                });
-                setTimeout(() => window.location.reload(), 1200);
-
+                renderStats();
             } catch (e) {
                 console.error('[xumm] connect error', e);
-                state.connected = false;
-                state.address = null;
-                localStorage.removeItem('xrpl_account');
-                updateWalletUI();
-
                 Swal.fire({
                     title: 'Error',
-                    text: e.message || 'Wallet connection failed.',
-                    icon: 'error'
+                    text: 'Wallet connection failed.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
                 });
-            } finally {
-                btnConnect.disabled = false;
-                if (!state.connected) btnConnect.textContent = 'Connect Wallet';
+                btnConnect.textContent = 'Connect Wallet';
+                state.connected = false;
+                state.address = null;
             }
         }
-
 
         async function disconnectWallet() {
             const current = getCurrentAccount();
