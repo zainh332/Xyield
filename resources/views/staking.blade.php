@@ -54,12 +54,9 @@
 
                     <!-- you can remove this if not needed -->
                     <div id="wallet-dropdown"
-                        class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
-                        <div class="px-4 py-2 text-sm text-gray-700 border-b">
-                            <span id="wallet-short"></span>
-                        </div>
+                        class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
                         <button id="btn-disconnect"
-                            class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">
+                            class="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl">
                             Disconnect
                         </button>
                     </div>
@@ -434,7 +431,7 @@
         }
 
         const btnConnect = document.getElementById('btn-connect');
-        const walletShort = document.getElementById('wallet-short');
+        // const walletShort = document.getElementById('wallet-short');
         const dropdown = document.getElementById('wallet-dropdown');
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -443,7 +440,7 @@
                 state.address = saved;
                 state.connected = true;
                 btnConnect.textContent = 'Disconnect';
-                if (walletShort) walletShort.textContent = shortAddr(saved);
+                // if (walletShort) walletShort.textContent = shortAddr(saved);
                 ui.walletInfo?.classList.remove('hidden');
                 if (ui.walletAddr) ui.walletAddr.textContent = saved;
             }
@@ -476,7 +473,7 @@
                 if (ui.walletAddr) ui.walletAddr.textContent = publicKey;
 
                 // btnConnect.textContent = 'Disconnect';
-                if (walletShort) walletShort.textContent = shortAddr(publicKey);
+                // if (walletShort) walletShort.textContent = shortAddr(publicKey);
 
                 localStorage.setItem('xrpl_account', publicKey);
 
@@ -950,12 +947,12 @@
                 btnConnect.textContent = shortAddr(state.address);
                 btnConnect.classList.remove('btn-primary');
                 btnConnect.classList.add('btn-outline');
-                walletShort.textContent = state.address;
+                // walletShort.textContent = state.address;
             } else {
                 btnConnect.textContent = 'Connect Wallet';
                 btnConnect.classList.add('btn-primary');
                 btnConnect.classList.remove('btn-outline');
-                walletShort.textContent = '';
+                // walletShort.textContent = '';
             }
         }
 
