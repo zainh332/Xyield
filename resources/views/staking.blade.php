@@ -447,6 +447,7 @@
                 ui.walletInfo?.classList.remove('hidden');
                 if (ui.walletAddr) ui.walletAddr.textContent = saved;
             }
+            updateWalletUI();
         });
 
         // main button click
@@ -454,7 +455,7 @@
             if (!state.connected) {
                 await connectWallet();
             } else {
-                await disconnectWallet();
+                dropdown.classList.toggle('hidden');
             }
         });
 
@@ -468,10 +469,13 @@
                 state.address = publicKey;
                 state.connected = true;
 
+                localStorage.setItem('xrpl_account', publicKey);
+                updateWalletUI();
+
                 ui.walletInfo?.classList.remove('hidden');
                 if (ui.walletAddr) ui.walletAddr.textContent = publicKey;
 
-                btnConnect.textContent = 'Disconnect';
+                // btnConnect.textContent = 'Disconnect';
                 if (walletShort) walletShort.textContent = shortAddr(publicKey);
 
                 localStorage.setItem('xrpl_account', publicKey);
@@ -581,6 +585,8 @@
             localStorage.removeItem('accessToken');
 
             renderStats();
+
+            updateWalletUI();
         }
 
         $('#btn-copy')?.addEventListener('click', () => {
@@ -934,6 +940,29 @@
         if (initialAccount) {
             loadUserTransactions(initialAccount);
         }
+
+        function shortAddr(addr) {
+            return addr.slice(0, 4) + '...' + addr.slice(-4);
+        }
+
+        function updateWalletUI() {
+            if (state.connected && state.address) {
+                btnConnect.textContent = shortAddr(state.address);
+                btnConnect.classList.remove('btn-primary');
+                btnConnect.classList.add('btn-outline');
+                walletShort.textContent = state.address;
+            } else {
+                btnConnect.textContent = 'Connect Wallet';
+                btnConnect.classList.add('btn-primary');
+                btnConnect.classList.remove('btn-outline');
+                walletShort.textContent = '';
+            }
+        }
+
+        document.getElementById('btn-disconnect').addEventListener('click', async () => {
+            await disconnectWallet();
+            dropdown.classList.add('hidden');
+        });
     </script>
 </body>
 
