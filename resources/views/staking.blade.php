@@ -464,6 +464,7 @@
                 state.address = publicKey;
                 state.connected = true;
 
+                localStorage.setItem('xrpl_account', publicKey);
                 updateWalletUI();
 
                 ui.walletInfo?.classList.remove('hidden');
@@ -576,6 +577,8 @@
             btnConnect.textContent = 'Connect Wallet';
             dropdown?.classList.add('hidden');
 
+            localStorage.removeItem('XummPkceJwt');
+            sessionStorage.removeItem('XummPkceJwt');
             renderStats();
 
             updateWalletUI();
